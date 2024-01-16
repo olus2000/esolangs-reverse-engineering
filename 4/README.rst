@@ -81,6 +81,16 @@ There are three folders:
 
    4. ``*.fab`` - Modified substitution syntax for use with the Factor compiler.
 
+.. _compiler: ./compiler/
+.. _emulator.py: ./compiler/emulator.py
+.. _compiler.factor: ./compiler/compiler.factor
+.. _bct_generator.py: ./compiler/bct_generator.py
+.. _deobf_stages: ./deobf_stages/
+.. _raw_interp.c: ./deobf_stages/raw_interp.c
+.. _deobf_interp.c: ./deobf_stages/deobf_intrep.c
+.. _understood_interp.c: ./deobf_stages/understood_interp.c
+.. _solutions: ./solutions/
+
 
 Explanation
 ===========
@@ -88,3 +98,5 @@ Explanation
 Uhhh maybe at some point? It's basically just an elaborate substitution engine
 with a funny predictive decoding mechanism. Just keep looking at the `understood
 source`_, surely you will understand it, it's easy 🤡
+
+.. _understood souce: ./deobf_stages/understood_interp.c
