@@ -1,0 +1,76 @@
+# Data:
+# 0 : 0
+# 1 : 1
+# 2 : dead <-> active
+# 3 : active <-> program
+
+# Markers:
+# _ : initial
+# A : moving towards the program
+# B : moving a command to the end
+# C : moving a command to the start
+# D : moving to execute 1
+# E : ending
+
+# Initial state
+_ = 2 1 A 3
+
+
+# Dhange depending on what is in front and move to end of program
+A 3 = 3 B
+A 3 = 3 B
+
+B 0 0 = 0 B 0
+B 0 1 = 1 B 0
+B 1 0 0 = 0 B 1 0
+B 1 0 1 = 1 B 1 0
+B 1 1 0 = 0 B 1 1
+B 1 1 1 = 1 B 1 1
+
+
+# Get to the start
+B 0 = C 0 0
+B 1 0 = C 1 0 1 0
+B 1 1 = C 1 1 1 1
+
+0 C 0 = C 0 0
+1 C 0 = C 0 1
+3 C 0 = C 0 3
+0 C 1 0 = C 1 0 0
+1 C 1 0 = C 1 0 1
+3 C 1 0 = C 1 0 3
+0 C 1 1 = C 1 1 0
+1 C 1 1 = C 1 1 1
+3 C 1 1 = C 1 1 3
+
+
+# Apply zero
+2 C 0 0 = 0 2 A
+2 C 0 1 = 1 2 A
+
+# One: false case
+C 1 0 0 = A 0
+C 1 1 0 = A 0
+
+# One: true case
+C 1 0 = 0 D
+C 1 1 = 1 D
+
+0 D 0 = 0 0 D
+0 D 1 = 1 0 D
+1 D 0 = 0 1 D
+1 D 1 = 1 1 D
+
+D = A
+
+
+# Get back to starting state
+A 0 = 0 A
+A 1 = 1 A
+
+
+# end
+2 A 3 = E
+E 0 = E
+E 1 = E
+E =

@@ -1,0 +1,9 @@
+# This is a test
+# Newlines only matter for terminating comments
+main
+  "010" ("0", "1")  # This should also work without parenthesis
+  "101" (2, 3)    # Integers are the `drop N characters` operation
+  "111" secondary 0
+
+secondary # Some comment
+  "000" 0 # Other comment

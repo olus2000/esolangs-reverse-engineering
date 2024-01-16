@@ -1,0 +1,20 @@
+# Encoding:
+# 0 -> 010
+# 1 -> 0110
+
+# Initial marker: 000
+# Marker must:
+# - Start and end with 0
+# - Contain 101
+# - Never contain two consecutive zeros
+# If a marker state will only be used on one end it may omit the ending zero
+
+# Going: 01010
+# Deleting: 010110
+
+000=01010
+01010010=01001010
+010100110=011001010
+01010=01011
+01001011=
+011001011=
