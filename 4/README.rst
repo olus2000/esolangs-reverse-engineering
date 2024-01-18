@@ -99,4 +99,4 @@ Uhhh maybe at some point? It's basically just an elaborate substitution engine
 with a funny predictive decoding mechanism. Just keep looking at the `understood
 source`_, surely you will understand it, it's easy 🤡
 
-.. _understood souce: ./deobf_stages/understood_interp.c
+.. _understood source: ./deobf_stages/understood_interp.c
