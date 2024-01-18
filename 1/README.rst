@@ -38,6 +38,11 @@ You can see several files and direcotries here:
    3. disassembly-3.0.txt_ - code section of the binary disassembled by hand
       into something assembly-like, with comments, notes, and addresses.
 
+.. _raw: ./raw/
+.. _tools: ./tools/
+.. _deobf_stages: ./deobf_stages/
+.. _sectioned-3.0.dump: ./deobf_stages/sectioned-3.0.dump
+.. _disassembly-3.0.txt: ./deobf_stages/disassembly-3.0.txt
 
 
 Commands
