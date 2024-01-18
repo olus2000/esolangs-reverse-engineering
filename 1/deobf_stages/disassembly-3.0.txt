@@ -1,0 +1,460 @@
+0040025b - address of entry point <<<<! (VA)
+
+registers:
+0 - eax
+1 - ecx
+2 - edx
+3 - ebx
+4 - esp
+5 - ebp
+6 - esi
+7 - edi
+
+Section .text (1):
+|00400200| 28 43 29 20 50 41 4c 41 | 49 4f 4c 4f 47 4f 53 20 |(C) PALA|IOLOGOS |
+|00400210| 40 20 4d 45 4e 41 43 45 | 20 4c 61 62 73 2e 00 00 |@ MENACE| Labs.⋄⋄|
+|00400220| 00 02 40 00             |                         |⋄•@⋄    |        |
+
+
+get-char 224: ( -- eax: char )
+  ; Read 1 byte from the console into high ecx
+  push ebp
+  mov ebp esp
+  push ecx (reg 1)
+  push ecx (reg 1)
+.loop 229:
+  push 00000000
+  lea eax [ebp-08]
+  push eax
+  push 00000001
+  lea eax [ebp-01]
+  push eax
+  ; Get console input handle
+  push -a
+  call GetStdHandle
+  push eax
+  call ReadFile
+  test eax eax
+  jz .fail                ; If reading failed
+  cmp [ebp-08] 00000001
+  jne .fail               ; If nothing was read
+  mov eax [ebx-01]
+  cmp al 0d
+  je .loop                ; Get another if CR
+  leave
+  ret
+.fail 257:
+  xor ah al               ; Zero if failed, ??? if read zero
+  leave
+  ret
+
+|00400220|             55 8b ec 51 | 51 6a 00 8d 45 f8 50 6a |    U××Q|Qj⋄×E×Pj|
+|00400230| 01 8d 45 ff 50 6a f6 ff | 15 04 06 40 00 50 ff 15 |•×E×Pj××|•••@⋄P×•|
+|00400240| 14 06 40 00 85 c0 74 0f | 83 7d f8 01 75 09 8a 45 |••@⋄××t•|×}×•u_×E|
+|00400250| ff 3c 0d 74 d4 c9 c3 32 | c0|c9 c3                |×<_t×××2|×××     |
+
+
+Entry point 25b:
+  push ebp
+  mov ebp esp
+  sub esp 0000002c ?? 83 11 101 100 2c
+  ; Create a growable heap
+  push 00
+  push 00
+  push 00
+  call HeapCreate
+  mov heap-handle eax
+  mov [ebp-28] 00000080
+  and [ebp-1c] 00000000
+  and [ebp-18] 00000000
+  mov [ebp-1] 00
+  mov [ebp-3] 00
+  mov [ebp-2] 00
+  ; Allocate 80 bytes on heap and zero them
+  push 00000080
+  push 00000008
+  push [heap-handle]
+  call HeapAlloc
+  mov [ebp-10] eax
+.read-loop 2a3:
+  call get-char
+  mov [ebp-05] al
+  movsx eax byte [ebp-05]
+  cmp eax 0000000a
+  je .prepare-parsing     ; If newline
+  mov eax [ebp-1c]
+  inc eax
+  inc eax
+  cmp eax [ebp-28]
+  jle .no-realloc         ; Does it fit?
+  mov eax [ebp-28]
+  add eax 00000080
+  mov [ebp-28] eax
+  push word [ebp-28]
+2d0:
+  push word [ebp-10]
+  push 00000000
+  push [heap-handle]
+  call HeapReAlloc        ; Reallocate another 80 bytes but NOT zero them
+  mov [ebp-10] eax
+.no-realloc 2e4:
+  mov eax [ebp-10]
+  add eax [ebp-1c]
+  mov ecx [ebp-5]
+  mov [eax] cl?
+  call skip-byte (ret)
+  mov eax [ebp-10]
+  add eax [ebp-1c]
+  movsx eax byte [eax]
+  cmp eax 00000030
+  jl .non-digit           ; If less than '0'
+  mov eax [ebp-10]
+  add eax [ebp-1c]
+  movsx eax byte [eax]
+  cmp eax 00000039
+  jle .digit-or-letter    ; If digit
+.not-digit 311:
+  mov eax [ebp-10]
+  add eax [ebp-1c]
+  movsx eax byte [eax]
+  cmp eax 00000041
+  jl .not-letter-or-digit ; Outside "ABCD"
+  mov eax [ebp-10]
+  add eax [ebp-1c]
+  movsx eax byte [eax]
+  cmp eax 00000044
+  jg .not-letter-or-digit ; Outside "ABCD"
+.digit-or-letter 32d:
+  mov eax [ebp-1c]
+  inc eax
+  mov [ebp-1c] eax
+  jmp .read-loop
+
+  (jmp 33d at 339)
+
+.not-letter-or-digit 33b:
+  jmp .prepare-parsing
+
+  (jmp .read-loop at 33d)
+
+.prepare-parsing 342:
+  mov eax [ebp-10]
+  add eax [ebp-1c]
+  mov [eax] 00
+  call skip-byte-2 (b8)
+  jmp parsing-loop-entry
+
+.parsing-loop 353:
+  mov eax [ebp-18]
+  inc eax
+  mov [ebp-18] eax)
+
+.parsing-loop-entry 35a:
+  mov eax [ebp-18]
+  cmp eax [ebp-1c]
+  jge end                   ; Parsed all
+  call skip-two-bytes (66 0f)
+  mov eax [ebp-10]
+  add eax [ebp-1c]
+  movsx eax byte [eax]
+  rol eax 03
+  mov [ebp-24] eax
+  cmp [ebp-24] 000001c0
+  jg .in-9ABCD              ; Jump if char in "9ABCD"
+  cmp [ebp-24] 000001c0
+  je .com-8                 ; Jump if char is '8'
+  cmp [ebp-24] 000001a0
+  jg .in-567                ; Jump if char in "567"
+  cmp [ebp-24] 000001a0
+  je .com-4                 ; Jump if char is '4'
+  mov eax [ebp-24]
+  mov [ebp-14] eax
+  sub [ebp-14] 00000180     ; Subtract '0', char was in "0123\0"
+  jz .com-0                 ; Jump if char was '0'
+  sub [ebp-14] 08
+  jz .com-1                 ; Jump if char was '1'
+  sub [ebp-14] 08
+  jz .com-2                 ; Jump if char was '2'
+  sub [ebp-14] 08
+  jz .com-3                 ; Jump if char was '3'
+  jmp .continue
+
+.in-567 3e2:
+  mov eax [ebp-24]
+  mov [ebp-20] eax
+  sub [ebp-20] 000001a8
+  jz .com-5                 ; Jump if char was '5'
+  sub [ebp-20] 08
+  jz .com-6                 ; Jump if char was '6'
+  sub [ebp-20] 08
+  jz .com-7                 ; Jump if char was '7'
+  jmp .continue
+
+.in-9ABCD 40e:
+  mov rax [ebp-24]
+  mov [ebp-c] rax
+  sub [ebp-c] 000001c8
+  jz .com-9                 ; Jump if char was '9'
+  sub [ebp-c] 40
+  jz .com-A                 ; Jump if char was 'A'
+  sub [ebp-c] 08
+  jz .com-B                 ; Jump if char was 'B'
+  sub [ebp-c] 08
+  jz .com-C                 ; Jump if char was 'C'
+  sub [ebp-c] 08
+  jz .com-D                 ; Jump if char was 'D'
+  sub [ebp-c] 08
+  jz .com-E                 ; Jump if char was 'E'
+  sub [ebp-c] 08
+  jz .com-F                 ; Jump if char was 'F'
+  jmp .continue
+
+.com-0 45e:                 ; End program
+  jmp .end
+
+.com-F 463:                 ; fuck up com-B, then com-1
+  inc word [00400466] -> inc word [00400566] !!!!
+
+.com-1 469:                 ; If ebp-2: ebp-3 = ebp-2
+  movsx eax char [ebp-2]
+  test eax eax
+  jz .don't
+  call skip-byte (b8)
+  mov al [ebp-3]
+  mov [ebp-1] al
+.don't 47d:
+  jmp .continue
+
+heap-handle: 004005b4
+
+|00400250|                         |          55 8b ec 83 ec |        |   U××××|
+|00400260| 2c 6a 00 6a 00 6a 00 ff | 15 00 06 40 00 a3 b4 05 |,j⋄j⋄j⋄×|•⋄•@⋄××•|
+|00400270| 40 00 c7 45 d8 80 00 00 | 00 83 65 e4 00 83 65 e8 |@⋄×E××⋄⋄|⋄×e×⋄×e×|
+|00400280| 00 c6 45 ff 00 c6 45 fd | 00 c6 45 fe 00 68 80 00 |⋄×E×⋄×E×|⋄×E×⋄h×⋄|
+|00400290| 00 00 6a 08 ff 35 b4 05 | 40 00 ff 15 10 06 40 00 |⋄⋄j•×5×•|@⋄×•••@⋄|
+|004002a0| 89 45 f0 e8 7c ff ff ff | 88 45 fb 0f be 45 fb 83 |×E××|×××|×E×•×E××|
+|004002b0| f8 0a 0f 84 8a 00 00 00 | 8b 45 e4 40 40 3b 45 d8 |×_•××⋄⋄⋄|×E×@@;E×|
+|004002c0| 7e 22 8b 45 d8 05 80 00 | 00 00 89 45 d8 ff 75 d8 |~"×E×•×⋄|⋄⋄×E××u×|
+|004002d0| ff 75 f0 6a 00 ff 35 b4 | 05 40 00 ff 15 0c 06 40 |×u×j⋄×5×|•@⋄×•_•@|
+|004002e0| 00 89 45 f0 8b 45 f0 03 | 45 e4 8a 4d fb 88 08 e8 |⋄×E××E×•|E××M××•×|
+|004002f0| 8e 01 00 00(c3)8b 45 f0 | 03 45 e4 0f be 00 83 f8 |×•⋄⋄××E×|•E×•×⋄××|
+|00400300| 30 7c 0e 8b 45 f0 03 45 | e4 0f be 00 83 f8 39 7e |0|•×E×•E|×•×⋄××9~|
+|00400310| 1c 8b 45 f0 03 45 e4 0f | be 00 83 f8 41 7c 1c 8b |•×E×•E×•|×⋄××A|•×|
+|00400320| 45 f0 03 45 e4 0f be 00 | 83 f8 44 7f 0e 8b 45 e4 |E×•E×•×⋄|××D••×E×|
+|00400330| 40 89 45 e4 e9 6a ff ff | ff(eb 02)eb 05(e9 61 ff |@×E××j××|××•×•×a×|
+|00400340| ff ff)8b 45 f0 03 45 e4 | c6 00 00 e8 3c 02 00 00 |×××E×•E×|×⋄⋄×<•⋄⋄|
+|00400350|(b8)eb 07(8b 45 e8 40 89 | 45 e8)8b 45 e8 3b 45 e4 |××•×E×@×|E××E×;E×|
+|00400360| 0f 8d 1f 02 00 00 e8 1e | 02 00 00(66 0f)8b 45 f0 |•×••⋄⋄×•|•⋄⋄f•×E×|
+|00400370| 03 45 e8 0f be 00 c1 e0 | 03 89 45 dc 81 7d dc c0 |•E×•×⋄××|•×E××}××|
+|00400380| 01 00 00 0f 8f 85 00 00 | 00 81 7d dc c0 01 00 00 |•⋄⋄•××⋄⋄|⋄×}××•⋄⋄|
+|00400390| 0f 84 7c 01 00 00 81 7d | dc a0 01 00 00 7f 43 81 |•×|•⋄⋄×}|××•⋄⋄•C×|
+|004003a0| 7d dc a0 01 00 00 0f 84 | 0b 01 00 00 8b 45 dc 89 |}××•⋄⋄•×|••⋄⋄×E××|
+|004003b0| 45 ec 81 6d ec 80 01 00 | 00 0f 84 9f 00 00 00 83 |E××m××•⋄|⋄•××⋄⋄⋄×|
+|004003c0| 6d ec 08 0f 84 a0 00 00 | 00 83 6d ec 08 0f 84 b3 |m×••××⋄⋄|⋄×m×••××|
+|004003d0| 00 00 00 83 6d ec 08 0f | 84 c0 00 00 00 e9 9e 01 |⋄⋄⋄×m×••|××⋄⋄⋄××•|
+|004003e0| 00 00 8b 45 dc 89 45 e0 | 81 6d e0 a8 01 00 00 0f |⋄⋄×E××E×|×m××•⋄⋄•|
+|004003f0| 84 e2 00 00 00 83 6d e0 | 08 0f 84 e5 00 00 00|83 |××⋄⋄⋄×m×|••××⋄⋄⋄×|
+|00400400| 6d e0 08 0f 84 f2 00 00 | 00 e9 72 01 00 00 8b 45 |m×••××⋄⋄|⋄×r•⋄⋄×E|
+|00400410| dc 89 45 f4 81 6d f4 c8 | 01 00 00 0f 84 08 01 00 |××E××m××|•⋄⋄•×••⋄|
+|00400420| 00 83 6d f4 40 0f 84 16 | 01 00 00 83 6d f4 08 0f |⋄×m×@•×•|•⋄⋄×m×••|
+|00400430| 84 24 01 00 00 83 6d f4 | 08 0f 84 28 01 00 00 83 |×$•⋄⋄×m×|••×(•⋄⋄×|
+|00400440| 6d f4 08 0f 84 28 01 00 | 00 83 6d f4 08 0f 84 28 |m×••×(•⋄|⋄×m×••×(|
+|00400450| 01 00 00 83 6d f4 08 74 | 0a e9 22 01 00 00 e9 22 |•⋄⋄×m×•t|_×"•⋄⋄×"|
+|00400460| 01 00 00 ff 05 66 04 40 | 00 0f be 45 fe 85 c0 74 |•⋄⋄×•f•@|⋄•×E×××t|
+|00400470| 0c e8 0c 00 00 00(b8)8a | 45 fd 88 45 ff e9 fe 00 |_×_⋄⋄⋄××|E××E×××⋄|
+|00400480| 00 00                   |                         |⋄⋄      |        |
+
+
+skip-byte 482: ( -- )
+  inc byte [esp]
+  ret
+
+|00400480|       fe 04 24 c3       |                         |  ×•$×  |        |
+
+
+.com-2 486:           ; Swap ebp-1 and ebp-3
+  mov al [ebp-1]
+  mov [ebp-4] al
+  mov al [ebp-3]
+  mov [ebp-1] al
+  mov al [ebp-4]
+  mov [ebp-3]
+  jmp .continue
+
+.com-3 49d:           ; ebp-1 = not (ebp-3 and ebp-2)
+  call skip-byte (f6)
+  movsx eax byte [ebp-3]
+  movsx ecx byte [ebp-2]
+  and eax ecx
+  not eax
+  mov [ebp-1] al
+  jmp .continue
+
+.com-4 4b7:           ; Write ebp-2 to console
+  push 00000000
+  lea eax [ebp-2c]
+  push eax
+  push 00000001
+  lea eax [ebp-2]
+  push eax
+  push fffffff5 (-b)
+  call GetStdHandle   ; Get handle of ouptut console
+  push eax
+  call WriteConsoleA
+  jmp +a9
+
+.com-5 4d7:           ; Get a char into ebp-2
+  call get-char
+  mov [ebp-2] al
+  jmp .continue
+
+.com-6 4e4:           ; Swap ebp-1 and ebp-2
+  mov al [ebp-1]
+  mov [ebp-4] al
+  mov al [ebp-2]
+  mov [ebp-1] al
+  mov al [ebp-4]
+  mov [ebp-2] al
+  jmp .continue
+
+.com-7 4fb:           ; set ebp-1 by indexing relative with ebp-3 (-'0')
+  movsx eax byte [ebp-3]
+  add eax [ebp-18]
+  mov ecx [ebp-10]
+  movsx eax [1+ecx+eax]
+  sub eax 00000030
+  mov [ebp-1] al
+  jmp .continue
+
+.com-8 512:           ; Save ebp-2+'0' by indexing relative with ebp-1
+  movsx eax [ebp-2]
+  add eax 00000030
+  movsx ecx [ebp-1]
+.intercom-8 51d:
+  add ecx [ebp-18]
+  mov edx [ebp-10]
+  mov [ecx+edx+1] al
+  jmp .continue
+
+.com-9 529:           ; Set ebp-1 to next byte | '0'
+  mov eax [ebp-18]
+  inc eax
+  mov [ebp-18] eax
+  mov eax [ebp-10]
+  add eax [ebp-18]
+  movsx eax byte [eax]
+  sub eax 00000030
+  mov [ebp-1] al
+  jmp .continue
+
+.com-A 541:           ; Jump to ebp-2 and set it to ebp-3 + '0'
+  movsx eax [ebp-2]
+  mov [ebp-18] eax
+  movsx eax [ebp-3]
+  add eax 00000030
+  mov ecx [ebp-10]
+  add ecx [ebp-18]
+  mov [ecx] eax
+  jmp .continue
+
+.com-B 559:           ; Boolean negate ebp-1 (returns 0 or 1)
+  movsx eax [ebp-1]
+  neg eax
+  sbb eax eax
+  inc eax
+  mov [ebp-1] al
+  jmp .continue
+
+.com-C 567:           ; arithmetic shift right ebp-1
+  mov al [ebp-1]
+  sar eax 1
+  mov [ebp-1] al
+  jmp .continue
+
+.com-D 571:           ; rotate left ebp-1
+  mov al [ebp-1]
+  shl al 1
+  mov [ebp-1] al
+  jmp .continue
+
+.com-E? 57b:
+  jmp .intercom-8
+
+variables: [-2c=>] chars-written allocated-size char*8 ? length parsed ? allocation ? w? b? char 00 00 00 00 [<-00]
+eax: not bool(ebp-1)
+ecx: allocation
+edx: allocation
+stack: 
+
+|00400480|                   8a 45 | ff 88 45 fc 8a 45 fd 88 |      ×E|××E××E××|
+|00400490| 45 ff 8a 45 fc 88 45 fd | e9 e3 00 00 00 e8 e0 ff |E××E××E×|××⋄⋄⋄×××|
+|004004a0| ff ff(f6)0f be 45 fd 0f | be 4d fe 23 c1 f7 d0 88 |×××•×E×•|×M×#××××|
+|004004b0| 45 ff e9 c9 00 00 00 6a | 00 8d 45 d4 50 6a 01 8d |E×××⋄⋄⋄j|⋄×E×Pj•×|
+|004004c0| 45 fe 50 6a f5 ff 15 04 | 06 40 00 50 ff 15 08 06 |E×Pj××••|•@⋄P×•••|
+|004004d0| 40 00 e9 a9 00 00 00 e8 | 48 fd ff ff 88 45 fe e9 |@⋄××⋄⋄⋄×|H××××E××|
+|004004e0| 9c 00 00 00 8a 45 ff 88 | 45 fc 8a 45 fe 88 45 ff |×⋄⋄⋄×E××|E××E××E×|
+|004004f0| 8a 45 fc 88 45 fe e9 85 | 00 00 00 0f be 45 fd 03 |×E××E×××|⋄⋄⋄•×E×•|
+|00400500| 45 e8 8b 4d f0 0f be 44 | 01 01 83 e8 30 88 45 ff |E××M×•×D|••××0×E×|
+|00400510| eb 6e 0f be 45 fe 83 c0 | 30 0f be 4d ff|03 4d e8 |×n•×E×××|0•×M×•M×|
+|00400520| 8b 55 f0 88 44 0a 01 eb | 57 8b 45 e8 40 89 45 e8 |×U××D_•×|W×E×@×E×|
+|00400530| 8b 45 f0 03 45 e8 0f be | 00 83 e8 30 88 45 ff eb |×E×•E×•×|⋄××0×E××|
+|00400540| 3f 0f be 45 fe 89 45 e8 | 0f be 45 fd 83 c0 30 8b |?•×E××E×|•×E×××0×|
+|00400550| 4d f0 03 4d e8 88 01 eb | 27 0f be 45 ff f7 d8 1b |M×•M××•×|'•×E×××•|
+|00400560| c0 40 88 45 ff eb 19 8a | 45 ff d0 f8 88 45 ff eb |×@×E××•×|E××××E××|
+|00400570| 0f 8a 45 ff d0 e0 88 45 | ff eb 05 e9 9d ff ff ff |•×E××××E|××•×××××|
+
+
+.continue 580:
+  jmp .parsing-loop
+
+|00400580||e9 ce fd ff ff          |                         |×××××   |        |
+
+
+end 585:
+  mov esp [ebp]
+  pop ebp
+  ret
+
+|00400580|                8b e5 5d | c3                      |     ××]|×       |
+
+
+skipt-two-bytes 589:
+  inc byte [esp]
+
+
+|00400580|                         |    fe 04 24             |        | ×•$    |
+
+
+skip-byte-2 58c:
+  inc byte [esp]
+  ret
+
+|00400580|                         |             fe 04 24 c3 |        |    ×•$×|
+
+
+unused 590:
+  jmp ReadFile
+  jmp HeapCreate
+  jmp GetStdHandle
+  jmp WriteConsoleA
+  jmp HeapReAlloc
+  jmp HeapAlloc
+
+|00400590| ff 25 14 06 40 00 ff 25 | 00 06 40 00 ff 25 04 06 |×%••@⋄×%|⋄•@⋄×%••|
+|004005a0| 40 00 ff 25 08 06 40 00 | ff 25 0c 06 40 00 ff 25 |@⋄×%••@⋄|×%_•@⋄×%|
+|004005b0| 10 06 40 00 00 00 00 00 | 00 00 00 00 00 00 00 00 |••@⋄⋄⋄⋄⋄|⋄⋄⋄⋄⋄⋄⋄⋄|
+|004005c0| 00 00 00 00 00 00 00 00 | 00 00 00 00 00 00 00 00 |⋄⋄⋄⋄⋄⋄⋄⋄|⋄⋄⋄⋄⋄⋄⋄⋄|
+|*       |                         |                         |        |        |
+
+
+Import address table, also .idata section (2):
+|00000600| 6c 06 00 00 7a 06 00 00 | 8a 06 00 00 9a 06 00 00 |l•⋄⋄z•⋄⋄|×•⋄⋄×•⋄⋄|
+|00000610| a8 06 00 00 60 06 00 00 | 00 00 00 00             |×•⋄⋄`•⋄⋄|⋄⋄⋄⋄    |
+
+Addresses of kernel functions.
+1. HeapCreate
+2. GetStdHandle
+3. WriteConsoleA
+4. HeapReAlloc
+5. HeapAlloc
+6. ReadFile
