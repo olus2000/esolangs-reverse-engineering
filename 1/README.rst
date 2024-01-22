@@ -46,6 +46,7 @@ You can see several files and direcotries here:
 .. _deobf_stages: ./deobf_stages/
 .. _sectioned-3.0.dump: ./deobf_stages/sectioned-3.0.dump
 .. _disassembly-3.0.txt: ./deobf_stages/disassembly-3.0.txt
+.. _addition-attempt.txt: ./addition-attempt.txt
 
 
 Commands
