@@ -7,12 +7,12 @@ I did not have a chance to take part in the contest, but I took a stab at it
 in 2023 and managed to blindly disassemble and understand the system (with minor
 mistakes on disassembly), and write the following programs.
 
-AFAIK the winner of the round was Matthilde_ who wrote a writeup, but the link
-to it is unfortunately dead_.
+Most work on UM8 at the time was done after the round by Matthilde_ who made
+`a short writeup`_ about it.
 
 .. _UM8: https://esolangs.org/wiki/UM8
 .. _Matthilde: https://esolangs.org/wiki/User:Matthilde
-.. _dead: https://git.unix.lgbt/matthilde/um8-writeup
+.. _a short writeup: https://codeberg.org/matthilde/um8-writeup
 
 
 Structure of this directory
@@ -109,12 +109,14 @@ Stolen from esolang wiki, by Matthilde_::
   91DDDD6369989029063690236491DDDD291DDDD63699893293636902
   364
 
-I start from ``1`` and then keep shifting left (``D``) and doing bitwise not
-(``2163``) until I achieve the desired byte. The naive generation I used will
-fail on 0 bytes but they can be easily specialcased. It also needs a non-zero
-value in register b which is why it starts with ``916``.
+Matthilde's approach (outlined in `her writeup`_) is based on splitting bytes
+into 4 or 3 bit parts and combining them with a NAND operation (``3``). This has
+big drawbacks, because every usage of ``3`` takes up all three registers which
+requires storing any intermediate data in memory (see extensive use of ``8`` in
+presented code). Fortunately I am too dumb to actually figure out how to do it
+so I ended up finding a simpler, shorter solution.
 
-Mine::
+My naive approach::
 
   91691DD2163D2163DDD64912163D2163DD2163D2163D2163D2163649
   12163D2163D2163DD2163DD64912163D2163D2163DD2163DD6491216
@@ -123,6 +125,26 @@ Mine::
   D2163D2163D64912163D2163D2163DD2163DD64912163D2163DD2163
   D2163DD6491DDDD2163D21636491D2163D2163D64
 
+I start from the value 1 (``91``) and then keep shifting it left (``D``) and
+doing bitwise not (``2163``) until I achieve the desired byte. The naive
+generation I used will fail on 0 bytes but they can be easily specialcased. It
+also needs a non-zero value in register b which is why it starts with ``916``.
+
+This simplistic approach can be improved easily by starting not with 1 but with
+a bigger value matching the desired bit pattern more closely. For example
+getting the letter H previously was done with ``91DD2163D2163DDD`` (start with
+1, shift, twice, not, shift, not, shift thrice) it could be achieved from the
+value represented with the letter B (18) by just shifting it twice (``9BDD``).
+This cut about 2/3 of the code.
+
+My optimized approach::
+
+  9169BDD6496D2163D2163D2163D216364962163DD2163DD64962163D
+  D2163DD64962163DDDD216364952163D2163DD6498DD6495D2163DDD
+  216364962163DDDD21636497DD2163D2163D64962163DD2163DD6496
+  D2163D2163DD6498D2163D21636495D64
+
+.. _her writeup: `a short writeup`_
 
 Halting cat
 ===========
