@@ -24,8 +24,8 @@ You can see several files and direcotries here:
 
 2. raw_ - original code of the contest, unzipped.
 
-3. tools_ - a Factor vocab for generating code that prints constant bytes. Used
-   for Hello, World!
+3. tools_ - a Factor vocab for generating code that prints constant bytes, and
+   a UM8 interpreter. Used for Hello, World!
 
 4. deobf_stages_ - files I created in the process of disassembling the
    interpreter.
@@ -37,6 +37,9 @@ You can see several files and direcotries here:
 
    3. disassembly-3.0.txt_ - code section of the binary disassembled by hand
       into something assembly-like, with comments, notes, and addresses.
+
+5. `addition-attempt.txt`_ - A working program for adding two digits. I am not
+   ready to explain how it works, but there's a lot of comments inside.
 
 .. _raw: ./raw/
 .. _tools: ./tools/

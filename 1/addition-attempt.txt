@@ -1,0 +1,81 @@
+Base:
+
+  Get carry: (assumes X in a, Y in c)
+    forward-X forward-Y 632916163 save-Y
+
+  Get Q:
+    9X291616 95DD8 (forward X +20) 369Y23 697D8 (save Q +14)
+
+  Get W: (assumes Y in c)
+    9161(1)6329X63
+
+  Get sum: (assumes W in a)
+    69Q23 save-X
+
+  Jump back:
+    9Y69get-carry29end1629XA
+
+
+
+Whole:
+
+  5625 get-carry 6A
+
+  End:
+    forward-S value-6 addr-of-A 8
+    -48 2 get-carry 69SA
+
+  Step:
+    6 end 6A40
+
+  Get carry: (assumes X in a, Y in c)
+    forward-X forward-Y 632916163 save-Y
+
+  Get Q:
+    9X291616 95DD8 (forward X +20) 369Y23 697D8 (save Q +14)
+
+  Get W: (assumes Y in c)
+    9161(1)6329X63
+
+  Get sum: (assumes W in a)
+    69Q23 save-X
+
+  Jump back:
+    9Y69 get-carry 29 step 1629XA
+
+
+Whole:
+
+  5625 95DDDD (get-carry 80) 6A
+
+  End: (12)
+    06 98DD (forward-S +32) 8
+    (D)96 (value 6) 6 9BD (addr-of-A +34) 8
+
+  Again: (28)
+    962163D2163DDDD (minus '0' -48) 2 95DDDD (get carry 80) 69SA
+
+  Step: (53)
+    00006 (D)96D (end 12) 6A40
+
+  Padding: (66)
+    000000000000000
+
+  Get carry: (assumes X in a, Y in c) (81)
+    2 69CD8 (forward Y +38) 62 698D8 (forward X +16) 32916163 696DDD8 (save Y +48)
+
+  Get Q: (109)
+    9X291616 95DD8 (forward X +20) 369Y23 697D8 (save Q +14)
+
+  Get W: (assumes Y in c) (133)
+    9161(1)6329X63
+
+  Get sum: (assumes W in a) (145)
+    69Q23 6(DD)9C8 (save X +19)
+
+  Jump back: (156)
+    9Y6 95DDDD (get carry 80) 2 97DDD (step 12) 1629X2D2A
+
+
+Shortened:
+562595DDDD6A0698DD8D9669BD8962163D2163DDDD295DDDD690A00006D96D6A40000000000000000269CD862698D832916163696DDD89029161695DD8369023697D8916116329063690236DD9C890695DDDD297DDD162902D2A
