@@ -1,0 +1,15 @@
+; Selection sort. No vars or structs needed.
+
+#256                                  ; A guard value
+
+begin in dup #1 + while repeat drop   ; Just read *everything*
+
+#256 >aux                             ; Another guard value for good measure
+
+begin dup #256 = #0 = while           ; Until all actual values are exhausted
+  begin over #256 = #0 = while        ;   Until we have only one value left
+    over over > if swap then >aux     ;     Send the bigger one to aux stack
+  repeat out                          ;   Output the smallest value
+  begin aux> dup #256 = #0 = while    ;   Fetch all values back from aux
+  repeat >aux                         ;   Get the guard back there again
+repeat

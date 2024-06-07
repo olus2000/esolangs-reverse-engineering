@@ -1,0 +1,20 @@
+Sequence index out of bounds
+index -39
+seq   { f f f f f f f f f f f f f f ~243 more~ }
+
+(U) [ c-to-factor => ]
+    c-to-factor
+(U) [ [ (get-catchstack) push ] dip call => (get-catchstack) pop* ]
+(O) command-line-startup
+(O) run-script
+(O) main
+(O) compile
+(O) compile-byte
+(O) M\ sequence nth
+(O) bounds-error
+(O) M\ object throw
+(U) [
+        OBJ-CURRENT-THREAD special-object error-thread set-global
+        current-continuation => error-continuation set-global
+        [ original-error set-global ] [ rethrow ] bi
+    ]

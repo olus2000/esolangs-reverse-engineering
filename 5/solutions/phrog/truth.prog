@@ -1,0 +1,10 @@
+; Truth machine. No vars or structs needed.
+
+in dup begin                      ; Take input and keep a copy
+  dup #1 > while                  ; Decrement by two until you get 0 or 1
+  #2 -
+repeat
+
+if                                ; If you got 1
+  begin #1 while dup out repeat   ; Output the original copy infinitely
+else out then                     ; Otherwise output it once

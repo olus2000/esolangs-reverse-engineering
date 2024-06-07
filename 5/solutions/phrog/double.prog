@@ -1,0 +1,7 @@
+; Double
+
+{} begin in dup #1 + while dup out push repeat drop
+
+{} begin over length while over pop push repeat
+
+begin dup length while dup pop out repeat

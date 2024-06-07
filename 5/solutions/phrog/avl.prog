@@ -1,0 +1,43 @@
+trees
+
+: tree data depth
+
+; AVL Tree
+
+{} begin in dup #1 + while push repeat    ; Gather input into a list
+drop
+
+{} swap begin dup length while            ; Until we run out of values
+  {} >aux
+  dup pop begin over length while         ;   Scan through all the values
+    over pop over over > if swap then     ;     Keep the smallest element
+    aux> swap push >aux                   ;     Move the rest to another list
+  repeat swap drop push aux>              ;   Add the smallest to a list
+repeat drop
+
+#0 <tree> {} swap push trees!             ; Set up our list of trees
+
+begin trees length while                  ; Until we process all of them
+  trees first data>> length if            ;   If there's any data
+    trees first dup depth>>
+    dup begin dup while
+      #32 out #32 out #1 -                ;     Print indentation
+    repeat drop
+    #1 + >>depth
+    data>> #0 over length                 ;     Claculate half of data size
+    begin dup #1 > while
+      swap #1 + swap #2 -
+    repeat drop
+    >aux {} begin                         ;     Move that much to new list
+      aux> dup #1 - >aux while
+      over pop push
+    repeat aux> drop
+    {} begin                              ;     Reverse the new list
+      over length while
+      over pop push
+    repeat swap drop
+    trees first depth>> <tree>            ;     Make a new tree from new list
+    trees swap push drop
+    pop .                                 ;     Print the middle item
+  else trees pop drop then                ;   If there's no data drop the tree
+repeat

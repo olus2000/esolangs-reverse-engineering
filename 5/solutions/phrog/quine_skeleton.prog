@@ -1,0 +1,173 @@
+byte-buf bit-cnt bytes nodes tail-node string
+
+: list rest head
+: node parent weight bit id
+
+; Skeleton for a quine, needs special processing
+
+; The quine compiler will insert string creation here that will put a string
+; into ``string``
+
+; {} 'e push 'n push 'i push 'u push 'Q push string!
+
+
+#0 byte-buf! #8 bit-cnt!
+
+; #1 .
+
+; Reverse the program
+
+string copy {} begin over length while
+  over pop' push
+repeat swap drop
+
+; Prepend the quoted version of the program
+
+string swap begin over length while
+  over pop' push 'A push
+repeat string! drop
+
+; #2 .
+
+; An empty list for the 256 possible bytes
+#256 {} begin over while
+  {} push swap #1 - swap
+repeat bytes! drop
+
+; root node is represented as empty, it won't be swapped, it doesn't encode
+; bits.
+{} {} <list> dup nodes! tail-node!
+
+; #3 .
+
+; #0 #10
+
+begin string length while
+
+  ; swap #1 + swap #1 - dup if else drop dup . #10 then  
+  ; string first .
+
+  ; Fetch the node corresponding to the next byte in the string
+  bytes copy string first dup #64 - 0> if #65 - else #191 + then
+  begin dup while
+    over pop drop #1 -
+  repeat drop first
+
+  ; #30 .
+
+  dup length if
+    
+    ; If the node exists gather bits to reach it
+    first dup {} begin over length while
+      over bit>> push swap
+      parent>> swap
+    repeat swap drop
+
+    ; #20 .
+
+    ; Output the bits in the top-down order
+    begin dup length while
+      dup pop byte-buf dup + + byte-buf!
+      bit-cnt #1 - dup if bit-cnt!
+      else drop #8 bit-cnt! byte-buf out #0 byte-buf! then
+    repeat drop
+    ; Leave the node on the stack for later use
+
+  else
+
+    ; A new node needs to be created for the new byte
+    tail-node dup >aux head>> #1 #1 string first <node>
+    tail-node head>> #0 #0 string first #256 + <node>
+    {} swap <list> dup tail-node! over <list>
+    >aux push drop aux> aux> swap >>rest head>>
+
+    ; Gather bits needed to reach the former tail node
+    {} #0 push over begin dup length while
+      dup parent>> >aux
+      bit>> push aux>
+    repeat drop
+
+    ; Output the bits in the top-down order
+    begin dup length while
+      dup pop byte-buf dup + + byte-buf!
+      bit-cnt #1 - dup if bit-cnt!
+      else drop #8 bit-cnt! byte-buf out #0 byte-buf! then
+    repeat drop
+    ; Leave the former tail node for later use
+
+    ; Convert the byte into bits and output them
+    string first dup #1 + 0> if else #256 + then #8 begin dup while
+      #1 - swap
+      #0 begin over #1 - 0> while
+        #1 + swap #2 - swap
+      repeat swap
+      byte-buf dup + + byte-buf!
+      bit-cnt #1 - dup if bit-cnt!
+      else drop #8 bit-cnt! byte-buf out #0 byte-buf! then
+      swap
+    repeat drop drop
+
+  then
+
+  ; #10 .
+
+  begin dup length while
+
+    ; Find a the first node with the same weight, or {} if it's itself
+    nodes begin
+      rest>> over weight>> over head>> weight>> <>
+    while repeat
+
+    ; Swap nodes if found something other than itself or its parent
+    over id>> over head>> id>> = if drop else
+      over parent>> length if
+        over parent>> id>> over head>> id>> = if drop #0
+        else #1 then else #1
+      then if
+        ; If their parents are the same set bits correctly
+        over parent>> length over head>> parent>> length * if
+          over parent>> id>> over head>> parent>> id>> =
+        else
+          over parent>> length over head>> parent>> length + #0 =
+        then
+        if dup head>> #0 >>bit drop over #1 >>bit drop then  
+        swap nodes begin
+          rest>> over id>> over head>> id>> <>
+        while repeat swap >aux
+        over head>> >>head drop
+        dup head>> swap aux@ >>head drop
+        dup parent>> aux@ parent>> swap >aux >>parent
+        aux> aux> swap >>parent >aux
+        dup bit>> aux@ bit>> swap >aux >>bit drop
+        aux> aux> swap >>bit
+      then
+    then
+
+    ; Increment the weight and proceed to parent
+    dup weight>> #1 + >>weight parent>>
+  
+  repeat drop
+
+  string pop drop
+repeat
+
+; #4 .
+
+{} push tail-node head>> begin dup length while
+  dup parent>> >aux
+  bit>> push aux>
+repeat drop
+
+; Output the bits in the top-down order
+begin dup length while
+  dup pop byte-buf dup + + byte-buf!
+  bit-cnt #1 - dup if bit-cnt!
+  else drop #8 bit-cnt! byte-buf out #0 byte-buf! then
+repeat
+
+; Pad the remaining byte with 1s and output it
+bit-cnt byte-buf begin over while
+  dup + #1 + swap #1 - swap
+repeat out
+
+; #5 .

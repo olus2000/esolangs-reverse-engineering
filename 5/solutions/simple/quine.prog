@@ -1,0 +1,25 @@
+'A'QNO 'A'uNO 'A'iNO 'A'nNO 'A'eNO ...
+
+VKHBB 'A'A'A 01NL'ADBV 0001
+
+(clone the strings to var1 and var2)
+VLNOOC VNLO'ADB LOO'ACVN'ADB
+
+V'ANLOONG V51NLOW       (if var2 is empty jump +81 out of the loop)
+(append `AAA?NO` to var1)
+VBBNONNKH VNLN 'A'ANO 'A'ANO 'A'ANO 'AN'ADBMJNO 'A'NNO 'A'ON CVNB'ADB
+ONNC VNOB'ADB           (pop a value from var2)
+Va0NLVBW                (jump back -96 to the start of the loop)
+VBB
+
+LNOONC VNLN'ADB
+
+VLNBOBOBOO'AC VNL'ADBO80NFff (set up head in var1 and counter in var2)
+
+VNLN'A'ANO 'A'ANC VNB'ADB    (add two nodes)
+O08NLMBNEW                   (if var2 is zero jump +8 out of the loop)
+Vd7NLVBW                     (jump back -41 to the start of the loop)
+
+VNOOOOO'A N'A'A N0000'A      (create a root node for the encoding tree)
+
+VU

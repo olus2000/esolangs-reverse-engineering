@@ -1,0 +1,177 @@
+states answers
+
+
+: state future past stack bounds memory odds
+
+: dict key value next
+
+: fraction numer denom
+
+
+; Set up initial state
+
+{} begin in dup #1 + while push repeat drop
+
+{} begin over length while over pop push repeat
+
+swap {} {} #0 #0 {} <dict> #1 <state> {} swap push states!
+
+#0 #0 #1 <fraction> {} <dict> answers!
+
+; Main execution loop
+
+begin states length while
+  states first future>> pop dup '] = if
+    ; handle ]
+    #1 >aux begin
+      states first future>> swap push drop
+      states first past>> pop
+      dup '[ = if aux> #1 - >aux
+      else dup '] = if aux> #1 + >aux then then
+    aux@ while repeat aux> drop
+    states first past>> swap push drop
+  else states first past>> over push drop dup '| = if
+    ; handle |
+    states first bounds>> dup pop dup >aux #1 - push drop aux>
+    states first stack>> dup length if pop else drop #0 then
+    if if #0 else #1 then else drop #1 then
+    if
+      states first bounds>> pop drop
+      #1 begin
+        states first dup future>> pop swap past>> over push drop
+        dup '[ = if drop #1 + else '] = if #1 - then then
+      dup while repeat drop
+    then
+  else dup '+ = if
+    ; handle +
+    states first stack>> dup dup length if pop else drop #0 then
+    #1 + push drop
+  else dup '# = if
+    ; handle #
+    states first stack>> #0 push drop
+  else dup '@ = if
+    ; handle @
+    states first dup stack>> dup length if pop else drop #0 then
+    swap memory>> #1 >aux begin
+      over over key>> = if
+        aux> drop #0 >aux swap drop value>>
+      else dup next>> length #0 = if
+        aux> drop #0 >aux drop drop #0
+      then then
+    aux@ while next>> repeat aux> drop
+    states first stack>> swap push drop
+  else dup '! = if
+    ; handle !
+    states first dup stack>>
+    dup length if dup pop else #0 then
+    swap dup length if pop else drop #0 then >aux
+    swap memory>> #1 >aux begin
+      over over key>> = if
+        aux> drop aux> #0 >aux >>value drop drop
+      else dup next>> length #0 = if
+        swap aux> drop aux> #0 >aux {} <dict> >>next drop
+      then then
+    aux@ while next>> repeat aux> drop
+  else dup '? = if
+    ; handle ?
+    states first stack>> dup length if
+      states first dup odds>> over stack>> first #1 + * >>odds drop
+      first begin dup while #1 -
+        states first clone states over push drop
+        stack>> dup pop drop over push drop
+      repeat
+    then drop
+  else dup '[ = if
+    ; handle [
+    states first dup bounds>>
+    swap stack>> dup length if pop else drop #0 then push drop
+  else
+    ; remove the thing from the past
+    states first past>> pop drop
+  then then then then then then then drop then
+  states first future>> length #0 = if
+    states first stack>> dup length if first else drop #0 then
+    ; upload the answer to answers
+    answers #1 >aux begin
+      over over key>> = if
+        aux> drop #0 >aux
+
+        ; Add 1/odds to value
+        value>> states pop odds>>
+        ; GCD of denom and odds
+        over denom>> over begin over while
+          begin over over swap #1 - > while over - repeat swap
+        repeat swap drop dup >aux
+        ; Divide odds by GCD
+        #0 >aux swap begin dup while
+          over - aux> #1 + >aux
+        repeat drop drop
+        dup numer>> aux@ * >>numer
+        dup denom>> aux> over >aux * >>denom
+        ; Divide denom by GCD
+        aux> aux> swap #0 >aux begin dup while
+          over - aux> #1 + >aux
+        repeat drop drop
+        dup numer>> aux> + >>numer
+
+        ; Reduce value
+        ; GCD of denom and numer
+        dup numer>> over denom>> begin over while
+          begin over over swap #1 - > while over - repeat swap
+        repeat swap drop dup >aux
+        ; Divide denom by GCD
+        over denom>>
+        #0 >aux begin dup while
+          over - aux> #1 + >aux
+        repeat drop drop aux> >>denom
+        ; Divide numer by GCD
+        aux> over numer>>
+        #0 >aux begin dup while
+          over - aux> #1 + >aux
+        repeat drop drop aux> >>numer drop drop
+
+      else dup next>> length #0 = if
+        aux> drop #0 >aux
+        swap #1 states pop odds>> <fraction> {} <dict> >>next drop
+      then then
+    aux@ while next>> repeat aux> drop
+  then
+repeat
+
+
+; Filter the answers
+
+answers dup next>> begin dup length while
+  dup next>> >aux over value>> over value>>
+
+  ; Reduce numerators by GCD
+  over numer>> over numer>> over over begin over while
+    begin over over swap #1 - > while over - repeat swap
+  repeat swap drop dup >aux
+  swap #0 >aux begin dup while
+    over - aux> #1 + >aux
+  repeat drop drop aux>
+  swap aux> swap #0 >aux begin dup while
+    over - aux> #1 + >aux
+  repeat drop drop >aux
+
+  ; Reduce denominators by GCD
+  denom>> swap denom>> over over begin over while
+    begin over over swap #1 - > while over - repeat swap
+  repeat swap drop dup >aux
+  swap #0 >aux begin dup while
+    over - aux> #1 + >aux
+  repeat drop drop aux>
+  swap aux> swap #0 >aux begin dup while
+    over - aux> #1 + >aux
+  repeat drop drop
+
+  ; Calculate inequality
+  aux> swap aux> * swap aux> * swap >
+
+  if drop else swap drop then aux>
+repeat drop
+
+
+; Output a decimal
+key>> .

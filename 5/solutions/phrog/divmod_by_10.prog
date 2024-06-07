@@ -1,0 +1,12 @@
+; Program for testing divmod by 10
+
+#0 >aux
+in begin dup while
+  #0 swap begin dup #9 > while
+    #10 - swap #1 + swap
+   repeat '0 + swap aux> #1 + >aux
+repeat
+
+drop
+
+begin aux@ while aux> #1 - >aux out repeat

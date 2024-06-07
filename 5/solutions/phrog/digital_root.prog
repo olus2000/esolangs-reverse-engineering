@@ -1,0 +1,16 @@
+; Digital root. No vars or structs needed.
+
+; Sum the input digits
+#0 begin
+  in dup #1 + while
+  '0 - +
+repeat drop
+
+dup if
+  ; If the sum is non-zero calculate the remainder
+  begin
+    dup #9 - 0> while
+    #9 -
+  repeat
+then .
+
