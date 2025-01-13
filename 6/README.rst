@@ -70,6 +70,7 @@ treated as no-ops. For each command I will say how many arguments it takes and
 in their descriptions I will refer to the argument at (x1, y1) as ``X`` and the
 argument at (x2, y2) as ``Y``.
 
+=== ==== ========================================================
 Com Args Description
 === ==== ========================================================
  1   2   ``Y += X``
@@ -93,6 +94,7 @@ Com Args Description
 19   0   halt the program
 20   1   print ``X`` as a decimal number
 21   1   read a number to ``X``
+=== ==== ========================================================
 
 Note that there aren't any conditional jumps or such, so the main ways of
 control flow I used were changing the directional commands or switching time
