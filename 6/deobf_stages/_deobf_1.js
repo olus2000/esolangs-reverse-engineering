@@ -1,0 +1,88 @@
+let fs = require("fs"),
+  deasync = require("deasync"),
+  o = r => fs.readFileSync(r, "utf-8").split("\n").reduce(
+    (e, r, o, _) => (
+      o % 2 == 0 && e.push(
+        Array.from(
+          {length: Math.ceil(r.length / 2)},
+          (e, r) => _[o][2 * r] + _[o][2 * r + 1] + _[o + 1][2 * r] + _[o + 1][2 * r + 1]
+        )
+      ), e
+    ),
+    []
+  ),
+  _ = (e, r, o) => o < 0 || o >= e.length || r < 0 || r >= e[0].length,
+  l = (e, r, o) => {
+    if (_(e, r, o))
+      throw Error("Out of bounds.")
+  },
+  n = e => r => (e(r), r),
+  $ = 1,
+  u = 0,
+  d = 0,
+  f = 0,
+  h = [],
+  i = e => {
+    for (;!_(e, d, f); d += $, f += u)
+      w(e),
+      h.push([$, u, d, f, e])
+  },
+  c = e => {
+    [$, u, d, f, t] = h[h.length - e],
+    h = h.slice(0, -e),
+    i(t)
+  },
+  a = (e, r, o) => (..._) => e(o(..._.map(e => r(e)))),
+  s = e => [...e].reduce((r, o, _) => 94 * r + (e.charCodeAt(_) - 32), 0),
+  g = e => Array.from({length: 4}).reduce((r, o, _) => String.fromCharCode(32 + Math.floor(e / 94 ** _) % 94) + r, ""),
+  m = e => [e % 24 - 11, Math.floor(e / 24)],
+  C = () => {
+    let e = null;
+    for (process.stdin.once("data", r => e = r); null === e;)
+      deasync.runLoopOnce();
+    return e.toString().trim()
+  },
+  p = (e,r) => {
+    let o, _;
+    return [o,r] = m(r),
+      [_, r] = m(r),
+      l(e, _ + d, o + f),
+      [_ + d, o + f, r]
+  },
+  w = e => {
+    let r = s(e[f][d]),
+      o = Math.floor(r / 94),
+      _,
+      l = r => () => {
+        let [_, l, n] = p(e, o),
+          [$, u, d] = p(e, n);
+        e[u][$] = a(g, s, r)(e[u][$], e[l][_])
+      },
+      h = r => () => {
+        let [_, l, n] = p(e, o);
+        e[l][_] = a(g, s, r)(e[l][_])
+      };
+    ({1: l((e, r) => e + r),
+      2: l((e, r) => e - r),
+      3: l((e, r) => e * r),
+      4: l((e, r) => e / r),
+      5: l((e, r) => e % r),
+      6: l((e, r) => e == r),
+      7: l((e, r) => e != r),
+      8: l((e, r) => e < r),
+      9: l((e, r) => e > r),
+      10: l((e, r) => e || r),
+      11: l((e, r) => e && r),
+      12: h(n(e => process.stdout.write(String.fromCharCode(e)))),
+      13: h(e => C().charCodeAt(0)),
+      14(){$ = 1, u = 0},
+      15(){$ = -1, u = 0},
+      16(){$ = 0, u = 1},
+      17(){$ = 0, u = -1},
+      18: h(n(e => c(e))),
+      19: () => process.exit(0),
+      20: h(n(e => process.stdout.write(e.toString()))),
+      21: h(e => 0 | C())
+    })[r % 94]?.()
+  };
+i(o(process.argv[2]))

@@ -1,0 +1,71 @@
+adjustments:
+  getter -= getter-offset
+  D *= 94
+main loop:
+  X += <thing> <- getter is here
+  X /= D
+  X /= D
+  
+  Y += X
+  Y /= 94
+  Y %= 94
+  Y += 32
+  output char Y
+  Y -= Y
+
+  X %= 94
+  X += 32
+  output char X
+  X -= X
+
+  getter += 94 * 24
+
+  Y += getter
+  Y == getter-end-of-line check
+  time-branch -= Y
+  if it's not the end of line:
+    back-in-time to main loop
+
+  time-branch += Y
+  output newline
+
+  D < 93
+  X += D
+  X *= 94
+  getter += X
+  end-of-line-check += X
+  getter -= line-reset
+  X -= X
+
+  D *= 93
+  D += Y
+  Y -= Y
+
+  Y += getter
+  Y == getter-end-of-file check
+  time-jump += Y
+  back-in-time to main loop
+
+
+Variables and constants:
+X - the main value being outputteded
+Y - temp values and tests
+D - divisor, either 94 or 1 depending on the line we're printing
+a: 94 - 1 = 93
+b: 32
+c: 94
+d: 24 * 94 = 2256
+E: getter-end-of-line check = 1 0 12 2 -1 b
+n: newline = 10
+f: line-reset = 14 * 24 * 94 = 27072
+g: getter-end-of-file-check = 1 4 -2 2 -1 b
+h: small back-in-time = 20
+i: big back-in-time = 37
+j: getter-offset = 2 * 24 * 94
+
+
+Layout:
+--G-- ----- --vE
+v---v ----- --<a
+|Xjb. dcfgh inDY
+>---- ----- --.
